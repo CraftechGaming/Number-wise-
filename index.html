@@ -1,0 +1,449 @@
+<title>Numberwise</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: graph-paper ground, one centred column; home = goal hero + topic grid, practice = one question card at a time */
+:root{
+  --paper:#F2F5FA; --grid:rgba(45,91,215,.07); --card:#FFFFFF; --ink:#16203A; --muted:#5A6684; --line:#D8DFEC;
+  --blue:#2D5BD7; --blue-soft:#E6EDFC; --accent:#E8A317; --accent-soft:#FCF1D8; --accent-ink:#5A3D00;
+  --good:#1C9661; --good-soft:#E2F5EC; --bad:#CF4236; --bad-soft:#FBE6E4;
+  --f-display:"Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0E1424; --grid:rgba(124,156,255,.06); --card:#172038; --ink:#E7ECF7; --muted:#9AA6C3; --line:#2A3656;
+  --blue:#7C9CFF; --blue-soft:#1E2B4F; --accent:#F2B53A; --accent-soft:#3A2D10; --accent-ink:#F7D58C;
+  --good:#3CC98A; --good-soft:#13352A; --bad:#FF7A6E; --bad-soft:#3D1D1D; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --paper:#0E1424; --grid:rgba(124,156,255,.06); --card:#172038; --ink:#E7ECF7; --muted:#9AA6C3; --line:#2A3656;
+  --blue:#7C9CFF; --blue-soft:#1E2B4F; --accent:#F2B53A; --accent-soft:#3A2D10; --accent-ink:#F7D58C;
+  --good:#3CC98A; --good-soft:#13352A; --bad:#FF7A6E; --bad-soft:#3D1D1D; color-scheme:dark;}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;min-height:100vh}
+.wrap{max-width:960px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+/* top bar */
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:800;font-size:22px;letter-spacing:-.01em;background:none;border:0;padding:0}
+.mark{width:34px;height:34px;border-radius:9px;background:var(--blue);color:var(--card);display:grid;place-items:center;font-size:18px;font-weight:800}
+.bar .spacer{flex:1}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-weight:700;font-size:15px}
+.pill .star{color:var(--accent)}
+select{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-weight:700;font-size:15px}
+
+/* home hero */
+.hero{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:28px}
+.hero > div{min-width:0}
+.hello{font-size:15px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.hello input{border:0;border-bottom:2px dashed var(--line);background:transparent;font-weight:700;color:var(--ink);width:10ch;padding:0 2px}
+.hero h1{font-size:clamp(26px,4.5vw,36px);margin:6px 0 10px;font-weight:800}
+.hero p{margin:0 0 16px;color:var(--muted);max-width:52ch}
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:12px;padding:12px 20px;font-weight:700;font-size:16px;background:var(--blue);color:var(--card)}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.ring{position:relative;width:132px;height:132px}
+.ring svg{transform:rotate(-90deg)}
+.ring .lbl{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.ring .lbl b{font-family:var(--f-display);font-size:28px;line-height:1}
+.ring .lbl span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+.sect{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.sect h2{font-size:22px}
+.sect span{color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.tile{display:flex;flex-direction:column;gap:10px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;transition:transform .15s,border-color .15s}
+.tile:hover{transform:translateY(-2px);border-color:var(--blue)}
+.tile .top{display:flex;align-items:center;gap:12px}
+.glyph{flex:none;width:44px;height:44px;border-radius:10px;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:17px}
+.tile h3{font-size:17px}
+.tile small{color:var(--muted);font-size:13px;display:block}
+.meter{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--good);border-radius:inherit}
+.tile .meta{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+
+/* practice */
+.qhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.qhead h2{font-size:20px;flex:1;min-width:0}
+.pips{display:flex;gap:6px;margin-bottom:14px}
+.pips i{flex:1;height:8px;border-radius:99px;background:var(--line)}
+.pips i.ok{background:var(--good)} .pips i.half{background:var(--accent)} .pips i.no{background:var(--bad)} .pips i.now{background:var(--blue)}
+.level{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.level .dots{display:inline-flex;gap:3px}
+.level .dots i{width:9px;height:9px;border-radius:2px;background:var(--line)}
+.level .dots i.on{background:var(--blue)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:clamp(18px,4vw,32px);position:relative}
+.qtext{font-size:clamp(20px,3.6vw,26px);font-weight:700;margin:0 0 18px;line-height:1.4}
+.qtext mark{background:var(--accent-soft);color:var(--accent-ink);padding:0 4px;border-radius:4px;border-bottom:3px solid var(--accent)}
+.fig{margin:0 0 18px;max-width:320px}
+.fig svg{width:100%;height:auto;display:block}
+.fig .shape{fill:var(--blue-soft);stroke:var(--blue);stroke-width:2}
+.fig text{fill:var(--ink);font-family:var(--f-body);font-size:13px;font-weight:700}
+.answer{display:flex;gap:10px;flex-wrap:wrap}
+.answer input{flex:1;min-width:0;max-width:260px;font-size:22px;font-weight:700;padding:10px 14px;border:2px solid var(--line);border-radius:12px;background:var(--paper)}
+.answer input:focus{border-color:var(--blue);outline:none}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.opt{border:2px solid var(--line);background:var(--paper);border-radius:12px;padding:14px;font-size:20px;font-weight:700;display:flex;justify-content:center;align-items:center;min-height:64px}
+.opt:hover:not(:disabled){border-color:var(--blue)}
+.opt:disabled{opacity:.45;cursor:not-allowed;text-decoration:line-through}
+.opt.right{border-color:var(--good);background:var(--good-soft);opacity:1;text-decoration:none}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.05;font-size:.9em;margin:0 2px}
+.fr span:first-child{border-bottom:2px solid currentColor;padding:0 3px}
+.fb{margin-top:18px;border-radius:12px;padding:14px 16px;display:grid;gap:8px}
+.fb h3{font-size:18px}
+.fb.ok{background:var(--good-soft);color:var(--ink)} .fb.ok h3{color:var(--good)}
+.fb.hint{background:var(--accent-soft)} .fb.hint h3{color:var(--accent-ink)}
+.fb.no{background:var(--bad-soft)} .fb.no h3{color:var(--bad)}
+.fb ol{margin:0;padding-left:22px;display:grid;gap:4px}
+.fb .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+.gain{position:absolute;right:24px;top:18px;font-family:var(--f-display);font-weight:800;font-size:22px;color:var(--accent);animation:rise 1s ease-out forwards}
+@keyframes rise{from{transform:translateY(8px);opacity:0}30%{opacity:1}to{transform:translateY(-18px);opacity:0}}
+.lvlnote{font-size:14px;font-weight:700;color:var(--blue)}
+
+/* summary */
+.sum{text-align:center;display:grid;gap:14px;justify-items:center}
+.sum h1{font-size:clamp(28px,5vw,40px)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%;max-width:520px}
+.stat{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px}
+.stat b{display:block;font-family:var(--f-display);font-size:26px}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+@media (max-width:560px){.hero{grid-template-columns:1fr}.ring{justify-self:start}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="bar">
+    <button class="brand" id="homeBtn" aria-label="Numberwise home"><span class="mark">N</span>Numberwise</button>
+    <span class="spacer"></span>
+    <label class="sr" for="grade" hidden>Class</label>
+    <select id="grade" aria-label="Class"></select>
+    <span class="pill num" title="Total stars"><span class="star">★</span><span id="starTotal">0</span></span>
+  </header>
+  <main id="app"></main>
+</div>
+
+<script>
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b)[a,b]=[b,a%b];return a||1};
+const fmt=n=>Number(n).toLocaleString('en-IN',{maximumFractionDigits:4});
+const r4=x=>Math.round(x*1e4)/1e4;
+const sg=n=>n<0?`(${n})`:`${n}`;
+const fr=(n,d)=>d===1?`${n}`:`<span class="fr"><span>${n}</span><span>${d}</span></span>`;
+const simp=(n,d)=>{const g=gcd(n,d);return[n/g,d/g]};
+function mcq(correct,wrongs){ // items: [key, html]
+  const seen=new Set([correct[0]]);const opts=[correct];
+  for(const w of wrongs){if(!seen.has(w[0])&&opts.length<4){seen.add(w[0]);opts.push(w)}}
+  return{type:'mcq',answer:correct[0],answerHtml:correct[1],options:shuffle(opts)};
+}
+const fkey=(n,d)=>[`${n}/${d}`,fr(n,d)];
+
+/* ---------- question generators (L = level 1..5) ---------- */
+const PLACES=['ones','tens','hundreds','thousands','ten thousands','lakhs','ten lakhs'];
+const G={
+place(L){
+  const digits=L+2;let N,pos,d;
+  do{N=rnd(10**(digits-1),10**digits-1);pos=rnd(0,digits-1);d=Math.floor(N/10**pos)%10}while(d===0);
+  const s=fmt(N);let idx=-1,count=-1;
+  for(let i=s.length-1;i>=0;i--){if(/\d/.test(s[i])){count++;if(count===pos){idx=i;break}}}
+  const html=s.slice(0,idx)+`<mark>${s[idx]}</mark>`+s.slice(idx+1);
+  return{q:`What is the place value of the highlighted digit in <span class="num">${html}</span>?`,type:'num',answer:d*10**pos,
+    hint:'Count the places from the right: ones, tens, hundreds, thousands, ten thousands, lakhs.',
+    steps:[`The highlighted ${d} is in the ${PLACES[pos]} place.`,`Its value is ${d} × ${fmt(10**pos)} = ${fmt(d*10**pos)}.`]};
+},
+add(L){
+  const max=[0,20,100,1000,10000,100000][L];const op=pick(['+','−']);
+  let a=rnd(Math.ceil(max/5),max),b=rnd(Math.ceil(max/10),max);if(op==='−'&&b>a)[a,b]=[b,a];
+  const ans=op==='+'?a+b:a-b;
+  return{q:`<span class="num">${fmt(a)} ${op} ${fmt(b)} = ?</span>`,type:'num',answer:ans,
+    hint:op==='+'?'Start with the ones column and carry when a column adds up to 10 or more.':'Start with the ones column. If the top digit is smaller, borrow 1 from the next place.',
+    steps:op==='+'?[`Line the numbers up by place value.`,`Add each column from the ones place, carrying when a column passes 9.`,`${fmt(a)} + ${fmt(b)} = ${fmt(ans)}`]
+      :[`Line the numbers up by place value.`,`Subtract each column from the ones place, borrowing where needed.`,`${fmt(a)} − ${fmt(b)} = ${fmt(ans)}`,`Check: ${fmt(ans)} + ${fmt(b)} = ${fmt(a)} ✓`]};
+},
+mul(L){
+  const R=[null,[2,9,2,9],[3,12,6,12],[12,99,3,9],[12,99,11,99],[101,999,11,49]][L];
+  const a=rnd(R[0],R[1]),b=rnd(R[2],R[3]),ans=a*b;let steps;
+  const split=(x,y)=>{const t=y-y%10,o=y%10;return o?[`Split ${y} into ${t} + ${o}.`,`${fmt(x)} × ${t} = ${fmt(x*t)}`,`${fmt(x)} × ${o} = ${fmt(x*o)}`,`Add the parts: ${fmt(x*t)} + ${fmt(x*o)} = ${fmt(x*y)}`]:[`${fmt(x)} × ${y} = ${fmt(x)} × ${y/10} × 10 = ${fmt(x*y)}`]};
+  if(b>=10)steps=split(a,b);else if(a>=10)steps=split(b,a);else steps=[`${a} × ${b} means ${b} groups of ${a}.`,`${Array(b).fill(a).join(' + ')} = ${ans}`];
+  return{q:`<span class="num">${fmt(a)} × ${b} = ?</span>`,type:'num',answer:ans,hint:'Break one number into tens and ones, multiply each part, then add.',steps};
+},
+div(L){
+  const R=[null,[2,5,2,10],[2,10,2,12],[3,12,11,50],[11,25,11,60],[12,40,101,300]][L];
+  const d=rnd(R[0],R[1]),q=rnd(R[2],R[3]),N=d*q;const steps=[`Ask: what number times ${d} makes ${fmt(N)}?`];
+  if(q>=10){const big=q-q%10;steps.push(`${d} × ${big} = ${fmt(d*big)}. That leaves ${fmt(N)} − ${fmt(d*big)} = ${fmt(N-d*big)}.`);
+    if(q%10)steps.push(`${d} × ${q%10} = ${fmt(d*(q%10))}. So the answer is ${big} + ${q%10}.`)}
+  steps.push(`${fmt(N)} ÷ ${d} = ${q}. Check: ${q} × ${d} = ${fmt(N)} ✓`);
+  return{q:`<span class="num">${fmt(N)} ÷ ${d} = ?</span>`,type:'num',answer:q,hint:`Think of the ${d} times table. Take away big chunks like ${d} × 10 first.`,steps};
+},
+frac(L){
+  if(L===1){const d=rnd(4,12);let a=rnd(1,d-1),b=rnd(1,d-1);while(b===a)b=rnd(1,d-1);const big=Math.max(a,b);
+    return{q:`Which fraction is larger?`,...mcq(fkey(big,d),[fkey(Math.min(a,b),d),['eq','They are equal']]),
+      hint:'The bottom numbers are the same, so the pieces are the same size. Compare how many pieces.',
+      steps:[`Both fractions are cut into ${d} equal parts.`,`${big} parts is more than ${Math.min(a,b)} parts, so ${fr(big,d)} is larger.`]}}
+  if(L===2){const d=rnd(5,12),a=rnd(1,d-2),b=rnd(1,d-a-1);const[n,m]=simp(a+b,d);
+    return{q:`${fr(a,d)} + ${fr(b,d)} = ?`,...mcq(fkey(n,m),[fkey(a+b,d*2),fkey(a+b+1,d),fkey(Math.max(1,a+b-1),d),fkey(a*b,d)]),
+      hint:'When the bottom numbers match, add only the top numbers.',
+      steps:[`The denominators are both ${d}, so keep ${d}.`,`Add the numerators: ${a} + ${b} = ${a+b}.`,`${fr(a+b,d)}${n!==a+b?` simplifies to ${fr(n,m)} (divide top and bottom by ${gcd(a+b,d)})`:''}.`]}}
+  if(L===3){let a,b,c,d;do{b=rnd(3,9);d=rnd(3,9);a=rnd(1,b-1);c=rnd(1,d-1)}while(b===d||a*d===c*b);
+    const left=a*d>c*b;return{q:`Which fraction is larger?`,...mcq(left?fkey(a,b):fkey(c,d),[left?fkey(c,d):fkey(a,b),['eq','They are equal']]),
+      hint:'Rewrite both fractions with the same denominator, or cross-multiply.',
+      steps:[`Use the common denominator ${b*d}.`,`${fr(a,b)} = ${fr(a*d,b*d)} and ${fr(c,d)} = ${fr(c*b,b*d)}.`,`${Math.max(a*d,c*b)} is greater than ${Math.min(a*d,c*b)}, so ${left?fr(a,b):fr(c,d)} is larger.`]}}
+  if(L===4){let a,b,c,d;do{b=rnd(2,8);d=rnd(2,8)}while(b===d);a=rnd(1,b-1);c=rnd(1,d-1);
+    const l=b*d/gcd(b,d),N=a*(l/b)+c*(l/d);const[n,m]=simp(N,l);
+    return{q:`${fr(a,b)} + ${fr(c,d)} = ?`,...mcq(fkey(n,m),[fkey(a+c,b+d),fkey(a+c,l),fkey(N+1,l),fkey(a*c,b*d)]),
+      hint:`Find a common denominator first. The smallest one is ${l}.`,
+      steps:[`The lowest common multiple of ${b} and ${d} is ${l}.`,`${fr(a,b)} = ${fr(a*l/b,l)} and ${fr(c,d)} = ${fr(c*l/d,l)}.`,`Add the numerators: ${a*l/b} + ${c*l/d} = ${N}, giving ${fr(N,l)}${n!==N?` = ${fr(n,m)}`:''}.`]}}
+  const b=rnd(2,9),d=rnd(2,9),a=rnd(1,b-1),c=rnd(1,d-1);const[n,m]=simp(a*c,b*d);
+  return{q:`${fr(a,b)} × ${fr(c,d)} = ?`,...mcq(fkey(n,m),[fkey(a+c,b+d),fkey(a*d,b*c),fkey(a*c+1,b*d),fkey(a*c,b+d)]),
+    hint:'Multiply the tops together and the bottoms together.',
+    steps:[`Top: ${a} × ${c} = ${a*c}. Bottom: ${b} × ${d} = ${b*d}.`,`${fr(a*c,b*d)}${n!==a*c?` simplifies to ${fr(n,m)}`:''}.`]};
+},
+dec(L){
+  if(L<=2){const s=L===1?10:100,dp=L;const a=rnd(s,s*20)/s,b=rnd(s,s*10)/s,op=pick(['+','−']);
+    const[x,y]=op==='−'&&b>a?[b,a]:[a,b];const ans=r4(op==='+'?x+y:x-y);
+    return{q:`<span class="num">${x.toFixed(dp)} ${op} ${y.toFixed(dp)} = ?</span>`,type:'num',answer:ans,hint:'Line up the decimal points, then work as with whole numbers.',
+      steps:[`Write them with the decimal points lined up.`,`${op==='+'?'Add':'Subtract'} column by column, starting from the right.`,`${x.toFixed(dp)} ${op} ${y.toFixed(dp)} = ${ans.toFixed(dp)}`]}}
+  if(L===3){const a=rnd(11,999)/100,p=pick([10,100,1000]),ans=r4(a*p);
+    return{q:`<span class="num">${a} × ${fmt(p)} = ?</span>`,type:'num',answer:ans,hint:`Multiplying by ${fmt(p)} moves the decimal point ${Math.log10(p)} place(s) to the right.`,
+      steps:[`${fmt(p)} has ${Math.log10(p)} zero(s), so shift the decimal point ${Math.log10(p)} place(s) right.`,`${a} × ${fmt(p)} = ${fmt(ans)}`]}}
+  if(L===4){const a=rnd(11,99)/10,b=rnd(2,9),ans=r4(a*b);
+    return{q:`<span class="num">${a} × ${b} = ?</span>`,type:'num',answer:ans,hint:'Ignore the decimal point, multiply, then put it back.',
+      steps:[`Ignore the decimal: ${Math.round(a*10)} × ${b} = ${Math.round(a*10)*b}.`,`${a} has 1 decimal place, so the answer has 1: ${ans}.`]}}
+  const a=rnd(2,9)/10,b=rnd(11,49)/10,ans=r4(a*b);
+  return{q:`<span class="num">${a} × ${b} = ?</span>`,type:'num',answer:ans,hint:'Count the decimal places in both numbers. The answer has that many in total.',
+    steps:[`Ignore the decimals: ${Math.round(a*10)} × ${Math.round(b*10)} = ${Math.round(a*10)*Math.round(b*10)}.`,`There are 1 + 1 = 2 decimal places in total, so the answer is ${ans}.`]};
+},
+pct(L){
+  if(L===5){const y=pick([20,25,40,50,80,200,250]),p=pick([10,20,25,40,60,75]),x=y*p/100;
+    return{q:`What percentage of ${y} is ${x}?`,type:'num',answer:p,hint:'Write it as a fraction of the whole, then multiply by 100.',
+      steps:[`As a fraction: ${fr(x,y)}.`,`${fr(x,y)} × 100 = ${p}%.`]}}
+  const P=[null,[10,50],[10,20,25,50],[5,15,30,40,75],[12.5,35,45,60]][L];const p=pick(P);
+  const unit=100/gcd(p*10,1000)*10/10;const[nn,dd]=simp(p*10,1000);let n=dd*rnd(1,Math.max(1,Math.floor(400/dd)));if(n<20)n*=Math.ceil(20/n);
+  const ans=r4(n*p/100);
+  return{q:`What is ${p}% of ${fmt(n)}?`,type:'num',answer:ans,hint:p===10?'10% is the same as dividing by 10.':`${p}% means ${p} out of every 100.`,
+    steps:[`${p}% = ${fr(p,100)}${dd!==100?` = ${fr(nn,dd)}`:''}.`,`${dd!==100?fr(nn,dd):fr(p,100)} of ${fmt(n)} = ${fmt(n)} ÷ ${dd} × ${nn} = ${fmt(ans)}.`]};
+},
+int(L){
+  if(L===1){const a=rnd(-10,10),b=rnd(-10,-1),ans=a+b;return{q:`<span class="num">${a} + ${sg(b)} = ?</span>`,type:'num',answer:ans,hint:'Adding a negative number is the same as subtracting.',
+    steps:[`${a} + ${sg(b)} is the same as ${a} − ${-b}.`,`On a number line, start at ${a} and move ${-b} to the left: ${ans}.`]}}
+  if(L===2){const a=rnd(-20,20),b=rnd(-20,20),ans=a-b;return{q:`<span class="num">${a} − ${sg(b)} = ?</span>`,type:'num',answer:ans,hint:'Subtracting a negative is the same as adding a positive.',
+    steps:b<0?[`Subtracting ${sg(b)} is the same as adding ${-b}.`,`${a} + ${-b} = ${ans}`]:[`Start at ${a} and move ${b} to the left.`,`${a} − ${b} = ${ans}`]}}
+  if(L===3){const a=rnd(-12,12)||3,b=rnd(-12,12)||-4,ans=a*b;return{q:`<span class="num">${sg(a)} × ${sg(b)} = ?</span>`,type:'num',answer:ans,hint:'Same signs give a positive answer. Different signs give a negative one.',
+    steps:[`${Math.abs(a)} × ${Math.abs(b)} = ${Math.abs(ans)}.`,`The signs are ${(a<0)===(b<0)?'the same, so the answer is positive':'different, so the answer is negative'}: ${ans}.`]}}
+  if(L===4){const b=pick([-1,1])*rnd(2,12),q=pick([-1,1])*rnd(2,12),a=b*q;return{q:`<span class="num">${sg(a)} ÷ ${sg(b)} = ?</span>`,type:'num',answer:q,hint:'Same sign rules as multiplication.',
+    steps:[`${Math.abs(a)} ÷ ${Math.abs(b)} = ${Math.abs(q)}.`,`The signs are ${(a<0)===(b<0)?'the same, so positive':'different, so negative'}: ${q}.`]}}
+  const a=rnd(-15,15),b=rnd(2,15),c=rnd(-15,-2),ans=a+b+c;
+  return{q:`<span class="num">${a} − (−${b}) + ${sg(c)} = ?</span>`,type:'num',answer:ans,hint:'Rewrite every “minus a negative” as a plus first.',
+    steps:[`− (−${b}) becomes + ${b}, and + ${sg(c)} becomes − ${-c}.`,`${a} + ${b} = ${a+b}`,`${a+b} − ${-c} = ${ans}`]};
+},
+ooo(L){
+  let e,ans,steps;
+  if(L===1){const a=rnd(2,20),b=rnd(2,9),c=rnd(2,9);ans=a+b*c;e=`${a} + ${b} × ${c}`;steps=[`Multiply first: ${b} × ${c} = ${b*c}.`,`Then add: ${a} + ${b*c} = ${ans}.`]}
+  else if(L===2){const a=rnd(2,9),b=rnd(2,9),c=rnd(1,a*b-1);ans=a*b-c;e=`${a} × ${b} − ${c}`;steps=[`Multiply first: ${a} × ${b} = ${a*b}.`,`Then subtract: ${a*b} − ${c} = ${ans}.`]}
+  else if(L===3){const a=rnd(2,15),b=rnd(2,15),c=rnd(2,9);ans=(a+b)*c;e=`(${a} + ${b}) × ${c}`;steps=[`Brackets first: ${a} + ${b} = ${a+b}.`,`Then multiply: ${a+b} × ${c} = ${ans}.`]}
+  else if(L===4){const c=rnd(2,9),k=rnd(2,9),b=c*k,a=rnd(k+1,40);ans=a-b/c;e=`${a} − ${b} ÷ ${c}`;steps=[`Divide first: ${b} ÷ ${c} = ${k}.`,`Then subtract: ${a} − ${k} = ${ans}.`]}
+  else{const a=rnd(2,12),b=rnd(2,12),c=rnd(2,6),f=rnd(2,6),k=rnd(2,6),d=f*k;ans=(a+b)*c-k;e=`(${a} + ${b}) × ${c} − ${d} ÷ ${f}`;
+    steps=[`Brackets: ${a} + ${b} = ${a+b}.`,`Multiply and divide, left to right: ${a+b} × ${c} = ${(a+b)*c} and ${d} ÷ ${f} = ${k}.`,`Subtract: ${(a+b)*c} − ${k} = ${ans}.`]}
+  return{q:`<span class="num">${e} = ?</span>`,type:'num',answer:ans,hint:'Brackets, then × and ÷, then + and −.',steps};
+},
+eq(L){
+  const lin=(a,b)=>`${a===1?'':a}x${b>0?` + ${b}`:b<0?` − ${-b}`:''}`;let x,q,steps;
+  if(L===1){x=rnd(1,20);const b=rnd(1,20),c=x+b;q=`x + ${b} = ${c}`;steps=[`Subtract ${b} from both sides.`,`x = ${c} − ${b} = ${x}`]}
+  else if(L===2){x=rnd(2,12);const a=rnd(2,9),c=a*x;q=`${a}x = ${c}`;steps=[`Divide both sides by ${a}.`,`x = ${c} ÷ ${a} = ${x}`]}
+  else if(L===3){x=rnd(1,12);const a=rnd(2,9),b=rnd(1,20),c=a*x+b;q=`${lin(a,b)} = ${c}`;steps=[`Subtract ${b} from both sides: ${a}x = ${c-b}.`,`Divide by ${a}: x = ${x}.`]}
+  else if(L===4){x=pick([-1,1])*rnd(1,10);const a=rnd(2,9),b=rnd(1,15),c=a*x-b;q=`${lin(a,-b)} = ${c}`;steps=[`Add ${b} to both sides: ${a}x = ${c+b}.`,`Divide by ${a}: x = ${x}.`]}
+  else{x=rnd(-8,10)||2;const c=rnd(1,6),a=c+rnd(1,5),b=rnd(-12,12),d=(a-c)*x+b;q=`${lin(a,b)} = ${lin(c,d)}`;
+    steps=[`Subtract ${c===1?'':c}x from both sides: ${lin(a-c,b)} = ${d}.`,`${b>=0?`Subtract ${b}`:`Add ${-b}`}: ${a-c===1?'':a-c}x = ${d-b}.`,`${a-c>1?`Divide by ${a-c}: `:''}x = ${x}.`]}
+  steps.push('Check by putting your answer back into the equation.');
+  return{q:`Solve for x: <span class="num">${q}</span>`,type:'num',answer:x,hint:'Do the same thing to both sides until x is on its own.',steps};
+},
+geo(L){
+  const u=pick(['cm','m']);
+  const rect=(w,h,lw,lh)=>{const s=Math.min(200/w,110/h),W=w*s,H=h*s,x=(240-W)/2,y=(150-H)/2;
+    return`<svg viewBox="0 0 240 170" role="img" aria-label="Rectangle ${lw} by ${lh}"><rect class="shape" x="${x}" y="${y}" width="${W}" height="${H}" rx="2"/><text x="120" y="${y+H+18}" text-anchor="middle">${lw}</text><text x="${x-6}" y="${y+H/2+4}" text-anchor="end">${lh}</text></svg>`};
+  if(L<=2){const w=rnd(3,L===1?12:20),h=rnd(2,L===1?9:15),area=L===2;const ans=area?w*h:2*(w+h);
+    return{q:`Find the ${area?'area':'perimeter'} of this rectangle (in ${area?u+'²':u}).`,fig:rect(w,h,`${w} ${u}`,`${h} ${u}`),type:'num',answer:ans,
+      hint:area?'Area = length × breadth.':'Perimeter is the distance all the way round: add all four sides.',
+      steps:area?[`Area = length × breadth.`,`${w} × ${h} = ${ans} ${u}²`]:[`Perimeter = 2 × (length + breadth).`,`2 × (${w} + ${h}) = 2 × ${w+h} = ${ans} ${u}`]}}
+  if(L===3){const s=rnd(3,15),A=s*s;return{q:`A square has an area of ${A} ${u}². What is its perimeter (in ${u})?`,fig:rect(1,1,`? ${u}`,`? ${u}`),type:'num',answer:4*s,
+    hint:'Find the side first: which number times itself gives the area?',steps:[`${s} × ${s} = ${A}, so each side is ${s} ${u}.`,`Perimeter = 4 × ${s} = ${4*s} ${u}.`]}}
+  if(L===4){const b=rnd(2,12)*2,h=rnd(3,14),A=b*h/2;
+    const svg=`<svg viewBox="0 0 240 170" role="img" aria-label="Triangle with base ${b} and height ${h}"><polygon class="shape" points="20,140 220,140 80,25"/><line x1="80" y1="25" x2="80" y2="140" stroke="currentColor" stroke-dasharray="4 4" style="color:var(--muted)"/><text x="120" y="160" text-anchor="middle">${b} ${u}</text><text x="86" y="92">${h} ${u}</text></svg>`;
+    return{q:`Find the area of this triangle (in ${u}²).`,fig:svg,type:'num',answer:A,hint:'Area of a triangle = ½ × base × height.',steps:[`Area = ½ × base × height.`,`½ × ${b} × ${h} = ${A} ${u}²`]}}
+  const W=rnd(8,16),H=rnd(6,12),cw=rnd(2,W-3),ch=rnd(2,H-3),A=W*H-cw*ch;
+  const s=Math.min(190/W,120/H),x0=30,y0=20,X=W*s,Y=H*s,cx=cw*s,cy=ch*s;
+  const svg=`<svg viewBox="0 0 240 170" role="img" aria-label="L-shape"><polygon class="shape" points="${x0},${y0} ${x0+X-cx},${y0} ${x0+X-cx},${y0+cy} ${x0+X},${y0+cy} ${x0+X},${y0+Y} ${x0},${y0+Y}"/><text x="${x0+X/2}" y="${y0+Y+16}" text-anchor="middle">${W} ${u}</text><text x="${x0-6}" y="${y0+Y/2}" text-anchor="end">${H} ${u}</text><text x="${x0+X-cx/2}" y="${y0+cy/2+4}" text-anchor="middle">${cw}×${ch}</text></svg>`;
+  return{q:`A ${cw} ${u} × ${ch} ${u} corner is cut from a ${W} ${u} × ${H} ${u} rectangle. What is the area left (in ${u}²)?`,fig:svg,type:'num',answer:A,
+    hint:'Find the area of the full rectangle, then take away the missing corner.',steps:[`Full rectangle: ${W} × ${H} = ${W*H} ${u}².`,`Missing corner: ${cw} × ${ch} = ${cw*ch} ${u}².`,`${W*H} − ${cw*ch} = ${A} ${u}²`]};
+},
+ratio(L){
+  if(L===1){const a=rnd(1,5),b=rnd(2,7),k=rnd(2,6);return{q:`For every ${a} red bead${a>1?'s':''} on a necklace there ${b>1?'are':'is'} ${b} blue. There are ${a*k} red beads. How many blue beads are there?`,type:'num',answer:b*k,
+    hint:'How many groups of red beads are there?',steps:[`${a*k} ÷ ${a} = ${k} groups.`,`Each group has ${b} blue, so ${k} × ${b} = ${b*k} blue beads.`]}}
+  if(L<=3){const a=rnd(1,6),b=rnd(a+1,9),k=rnd(5,40),N=(a+b)*k,big=L===3;return{q:`₹${fmt(N)} is shared between Asha and Ravi in the ratio ${a} : ${b}. How much does ${big?'Ravi':'Asha'} get (in ₹)?`,type:'num',answer:(big?b:a)*k,
+    hint:'Add the parts of the ratio to find the number of equal shares.',steps:[`Total parts: ${a} + ${b} = ${a+b}.`,`One part: ₹${fmt(N)} ÷ ${a+b} = ₹${fmt(k)}.`,`${big?'Ravi':'Asha'} gets ${big?b:a} parts: ${big?b:a} × ₹${fmt(k)} = ₹${fmt((big?b:a)*k)}.`]}}
+  if(L===4){const n=rnd(2,9),p=rnd(3,25),m=rnd(2,15);return{q:`${n} notebooks cost ₹${fmt(n*p)}. How much do ${m} notebooks cost (in ₹)?`,type:'num',answer:m*p,
+    hint:'Find the cost of one notebook first.',steps:[`One notebook: ₹${fmt(n*p)} ÷ ${n} = ₹${p}.`,`${m} notebooks: ${m} × ₹${p} = ₹${fmt(m*p)}.`]}}
+  const a=rnd(1,4),b=rnd(1,5),c=rnd(2,6),k=rnd(10,60),N=(a+b+c)*k;
+  return{q:`₹${fmt(N)} is shared among three friends in the ratio ${a} : ${b} : ${c}. How much is the largest share (in ₹)?`,type:'num',answer:Math.max(a,b,c)*k,
+    hint:'Add all three parts, find one part, then scale up the biggest number.',steps:[`Total parts: ${a} + ${b} + ${c} = ${a+b+c}.`,`One part: ₹${fmt(N)} ÷ ${a+b+c} = ₹${fmt(k)}.`,`Largest share: ${Math.max(a,b,c)} × ₹${fmt(k)} = ₹${fmt(Math.max(a,b,c)*k)}.`]};
+}};
+
+const TOPICS=[
+ {id:'place',name:'Place value',blurb:'Ones up to ten lakhs',g:[3,5],glyph:'#'},
+ {id:'add',name:'Add & subtract',blurb:'Carrying and borrowing',g:[3,4],glyph:'+−'},
+ {id:'mul',name:'Multiplication',blurb:'Tables to 3-digit × 2-digit',g:[3,6],glyph:'×'},
+ {id:'div',name:'Division',blurb:'Sharing and long division',g:[3,6],glyph:'÷'},
+ {id:'geo',name:'Area & perimeter',blurb:'Rectangles, triangles, L-shapes',g:[3,8],glyph:'▭'},
+ {id:'frac',name:'Fractions',blurb:'Compare, add, multiply',g:[4,7],glyph:'½'},
+ {id:'dec',name:'Decimals',blurb:'Add, shift, multiply',g:[5,7],glyph:'0.5'},
+ {id:'ooo',name:'Order of operations',blurb:'Brackets before ×, ÷, +, −',g:[5,8],glyph:'( )'},
+ {id:'pct',name:'Percentages',blurb:'Percent of a number',g:[6,8],glyph:'%'},
+ {id:'int',name:'Integers',blurb:'Negative numbers',g:[6,8],glyph:'±'},
+ {id:'ratio',name:'Ratio & proportion',blurb:'Sharing and unit cost',g:[6,8],glyph:'1:2'},
+ {id:'eq',name:'Linear equations',blurb:'Solve for x',g:[6,8],glyph:'x='},
+];
+const ROUND=8, GOAL=40;
+
+/* ---------- state ---------- */
+const KEY='numberwise.v1';
+const today=()=>new Date().toISOString().slice(0,10);
+let S={name:'Learner',grade:5,stars:0,day:{date:today(),stars:0},topics:{}};
+try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(S,JSON.parse(raw))}catch(e){}
+if(S.day.date!==today())S.day={date:today(),stars:0};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const T=id=>S.topics[id]||(S.topics[id]={level:1,recent:[],done:0});
+const mastery=id=>{const t=S.topics[id];if(!t||!t.recent.length)return 0;const acc=t.recent.filter(Boolean).length/t.recent.length;return Math.round(((t.level-1)/4)*60+acc*40)};
+const gradeTopics=()=>TOPICS.filter(t=>S.grade>=t.g[0]&&S.grade<=t.g[1]);
+
+/* ---------- views ---------- */
+const app=$('#app');
+function header(){$('#starTotal').textContent=fmt(S.stars)}
+const gradeSel=$('#grade');
+for(let g=3;g<=8;g++)gradeSel.add(new Option(`Class ${g}`,g));
+gradeSel.value=S.grade;
+gradeSel.onchange=()=>{S.grade=+gradeSel.value;save();home()};
+$('#homeBtn').onclick=()=>home();
+
+function home(){
+  sess=null;header();
+  const list=gradeTopics();
+  const next=list.slice().sort((a,b)=>mastery(a.id)-mastery(b.id))[0];
+  const pctGoal=Math.min(1,S.day.stars/GOAL),C=2*Math.PI*54;
+  app.innerHTML=`
+  <section class="hero">
+    <div>
+      <div class="hello">Hi, <input id="nm" aria-label="Your name" maxlength="20"></div>
+      <h1>Up next: ${next.name}</h1>
+      <p>Your weakest topic in Class ${S.grade} so far. Questions get harder as you get them right, and easier if you get stuck.</p>
+      <button class="btn" id="go">Start practice →</button>
+    </div>
+    <div class="ring" aria-label="Daily goal: ${S.day.stars} of ${GOAL} stars">
+      <svg width="132" height="132" viewBox="0 0 132 132"><circle cx="66" cy="66" r="54" fill="none" stroke="var(--line)" stroke-width="12"/>
+      <circle cx="66" cy="66" r="54" fill="none" stroke="var(--accent)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pctGoal)}"/></svg>
+      <div class="lbl"><b class="num">${S.day.stars}/${GOAL}</b><span>Stars today</span></div>
+    </div>
+  </section>
+  <div class="sect"><h2>Class ${S.grade} topics</h2><span>Mastery grows with level and accuracy</span></div>
+  <div class="grid">${list.map(t=>{const m=mastery(t.id),tt=S.topics[t.id];return`
+    <button class="tile" data-id="${t.id}">
+      <div class="top"><span class="glyph">${t.glyph}</span><div><h3>${t.name}</h3><small>${t.blurb}</small></div></div>
+      <div class="meter" aria-hidden="true"><i style="width:${m}%"></i></div>
+      <div class="meta num"><span>${m}% mastery</span><span>Level ${tt?tt.level:1}/5</span></div>
+    </button>`}).join('')}</div>`;
+  const nm=$('#nm');nm.value=S.name;nm.oninput=()=>{S.name=nm.value.trim()||'Learner';save()};
+  $('#go').onclick=()=>start(next.id);
+  app.querySelectorAll('.tile').forEach(b=>b.onclick=()=>start(b.dataset.id));
+}
+
+let sess=null;
+function start(id){sess={id,i:0,results:[],earned:0,streak:0,startLevel:T(id).level};nextQ()}
+function nextQ(){
+  if(sess.i>=ROUND)return summary();
+  const t=T(sess.id);sess.q=G[sess.id](t.level);sess.tries=0;sess.level=t.level;sess.done=false;renderQ();
+}
+function renderQ(){
+  const top=TOPICS.find(t=>t.id===sess.id),q=sess.q;
+  app.innerHTML=`
+  <div class="qhead"><h2>${top.name}</h2>
+    <span class="level">Level <span class="dots">${[1,2,3,4,5].map(n=>`<i class="${n<=sess.level?'on':''}"></i>`).join('')}</span></span>
+    <button class="btn ghost" id="quit">End round</button></div>
+  <div class="pips">${Array.from({length:ROUND},(_,k)=>`<i class="${sess.results[k]||(k===sess.i?'now':'')}"></i>`).join('')}</div>
+  <section class="card" aria-live="polite">
+    <p class="qtext">${q.q}</p>
+    ${q.fig?`<div class="fig">${q.fig}</div>`:''}
+    ${q.type==='num'?`<form class="answer" id="af"><input id="ans" inputmode="decimal" autocomplete="off" placeholder="Your answer" aria-label="Your answer"><button class="btn">Check</button></form>`
+      :`<div class="opts">${q.options.map(o=>`<button class="opt" data-k="${o[0]}">${o[1]}</button>`).join('')}</div>`}
+    <div id="fb"></div>
+  </section>`;
+  $('#quit').onclick=()=>sess.results.length?summary():home();
+  if(q.type==='num'){const inp=$('#ans');inp.focus();$('#af').onsubmit=e=>{e.preventDefault();if(sess.done||!inp.value.trim())return;check(parse(inp.value),inp)}}
+  else app.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{if(!sess.done)check(b.dataset.k,b)});
+}
+function parse(v){v=v.replace(/[,\s₹]/g,'').replace('−','-');if(/^-?\d+\/\d+$/.test(v)){const[a,b]=v.split('/');return+a/+b}return Number(v)}
+function check(v,el){
+  const q=sess.q,ok=q.type==='num'?Math.abs(v-q.answer)<1e-6:v===q.answer;sess.tries++;
+  const fb=$('#fb'),t=T(sess.id);
+  if(ok){
+    sess.done=true;const first=sess.tries===1,gain=first?sess.level+(sess.streak>=2?1:0):1;
+    sess.earned+=gain;S.stars+=gain;S.day.stars+=gain;sess.results[sess.i]=first?'ok':'half';
+    let note='';
+    if(first){sess.streak++;if(sess.streak%2===0&&t.level<5){t.level++;note=`Level up! Next questions are level ${t.level}.`}}else sess.streak=0;
+    record(first);if(el.classList)el.classList.add('right');
+    fb.innerHTML=`<div class="fb ok"><h3>${first?pick(['Correct!','Spot on!','Well done!']):'Got it on the second try.'}</h3>
+      <ol>${q.steps.map(s=>`<li>${s}</li>`).join('')}</ol>${note?`<div class="lvlnote">${note}</div>`:''}
+      <div class="row"><button class="btn" id="nx">${sess.i+1>=ROUND?'See results':'Next question →'}</button></div></div>`;
+    const g=document.createElement('div');g.className='gain';g.textContent=`+${gain} ★`;$('.card').appendChild(g);
+    header();lockInputs();
+  }else if(sess.tries===1){
+    if(el.tagName==='BUTTON')el.disabled=true;
+    fb.innerHTML=`<div class="fb hint"><h3>Not quite. Have another go.</h3><div>Hint: ${q.hint}</div></div>`;
+    if(q.type==='num'){const i=$('#ans');i.select();i.focus()}
+    sess.streak=0;return;
+  }else{
+    sess.done=true;sess.streak=0;sess.results[sess.i]='no';
+    let note='';if(t.level>1){t.level--;note=`Next questions drop to level ${t.level} so you can build up again.`}
+    record(false);
+    fb.innerHTML=`<div class="fb no"><h3>The answer is <span class="num">${q.type==='num'?fmt(q.answer):q.answerHtml}</span></h3>
+      <ol>${q.steps.map(s=>`<li>${s}</li>`).join('')}</ol>${note?`<div class="lvlnote">${note}</div>`:''}
+      <div class="row"><button class="btn" id="nx">${sess.i+1>=ROUND?'See results':'Next question →'}</button></div></div>`;
+    lockInputs();
+    if(q.type==='mcq')app.querySelectorAll('.opt').forEach(b=>{if(b.dataset.k===q.answer){b.classList.add('right');b.disabled=false}});
+  }
+  save();const nx=$('#nx');nx.focus();nx.onclick=()=>{sess.i++;nextQ()};
+}
+function lockInputs(){const i=$('#ans');if(i)i.readOnly=true;app.querySelectorAll('.opt').forEach(b=>b.disabled=!b.classList.contains('right'))}
+function record(first){const t=T(sess.id);t.recent.push(first);if(t.recent.length>10)t.recent.shift();t.done++;save()}
+
+function summary(){
+  const top=TOPICS.find(t=>t.id===sess.id),r=sess.results,firsts=r.filter(x=>x==='ok').length,t=T(sess.id);
+  const lvl=t.level-sess.startLevel;
+  app.innerHTML=`<section class="card sum">
+    <span class="glyph" style="width:64px;height:64px;font-size:24px">${top.glyph}</span>
+    <h1>${firsts>=r.length*0.75?'Brilliant round!':firsts>=r.length/2?'Good work!':'Nice effort. Keep going!'}</h1>
+    <p style="margin:0;color:var(--muted)">${top.name}: ${lvl>0?`you moved up ${lvl} level${lvl>1?'s':''} to level ${t.level}.`:lvl<0?`back to level ${t.level} to strengthen the basics.`:`you're steady at level ${t.level}.`}</p>
+    <div class="stats num">
+      <div class="stat"><b>${firsts}/${r.length}</b><span>First try</span></div>
+      <div class="stat"><b>+${sess.earned}</b><span>Stars</span></div>
+      <div class="stat"><b>${mastery(sess.id)}%</b><span>Mastery</span></div>
+    </div>
+    <div class="pips" style="width:100%;max-width:520px">${r.map(x=>`<i class="${x}"></i>`).join('')}</div>
+    <div class="row" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+      <button class="btn" id="again">Another round</button><button class="btn ghost" id="back">All topics</button></div>
+  </section>`;
+  $('#again').onclick=()=>start(sess.id);$('#back').onclick=home;$('#again').focus();
+}
+home();
+</script>
